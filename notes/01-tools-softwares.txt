@@ -1,0 +1,31 @@
+01-chcocolety package manager, if any antivirus installed disable temp
+
+for prerequisites git link:
+https://github.com/hkhcoder/vprofile-project/tree/prereqs
+
+open power shell as admin and run following commands :
+-----------------------------------------------------
+$ chcoco list
+$ choco uninstall <package>
+
+AWS setup:
+-----------------
+-----------------
+1) IAM:
+----- 
+    1) stup MFA for root user
+    2) add user - which has control over access where as root has complete access to aws
+        users -> create user -> carete iam user -> and set permissions by attching policied directly(AdministratorAccess, IAMuserchnage password)
+    3)create mfa for iam user
+        go to user created(itadmin) -> security credentials -> assign MFA
+
+2) Billing Alarams:
+--------------------
+    billing -> Preferences and Settings -> billing Preferences -> edit all(invoice delivery & alert preferences)  ----> now got to cloudwatch, select N.virgina -> alarams -> all alarams -> create alaram -> metrics -> billing -> total estimated charge -> metrics -> create sns topic and add
+
+3)certificate setup for our domain(sivakumarlearnings.online)
+----------------------------------------------------------------
+    acs -> (n.virgina) request cert -> public cert -> add domain name(*.domainNmae) -> validation(dns validation) -> key (rsa 2048) -> tags(name: domainName) ----> Now add cnane name(remove domain name and .) and cname value(all details and remove . at last) to your domain and verify 
+
+4) alias name setup for IAM account  user console :
+--------------------------------------------

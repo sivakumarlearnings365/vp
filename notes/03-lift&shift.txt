@@ -1,0 +1,45 @@
+1) create security groups for load balancer, tomcat instances, (memcache, rabbitmq & sql)
+    for LB (vprofile-LB-sg): http & https ( 80, 443) from any ipv4 and ipv6
+    for tomcat (vprofile-app-sg): custom tcp-8080, source is vprofile-LB-sg
+                22 port
+    for backend (vprofile-backend-sg): mysql:3306, source is app-sg
+                                       memcache: 11211, source is app-sg
+                                       rmq: 5672, source is app-sg
+                                       ssh: 22, from my ip
+                                       alltrffic, from app-sg
+        after creating sgs, edit inbound rules and add all traffic from bakenf-sg for internal communications
+
+2) key pairs
+    name: vprofile-prod-key, .pem format
+
+=================================================================================
+Now clone repo from "hkhcoder/vprofile-project" and chnage to awsliftandshift branch
+in cloned repo under user data, start from 
+    db(instance - amazonlinux 2023 ami and tags for instances and volumes also) and advanced -> userdata add "mysql.sh" script
+
+    memcache -> amazonlinux 2023 ami
+    rabbitmq -> amazonlinux 2023 ami
+    tomcat -> ubuntu2024
+
+for connecting to instances:
+    $ ssh -i path/to/.pem user@IP
+
+in sqlsever, check service and loginto to mariadb
+ $ mysql -u admin -padmin123 accounts
+
+
+==========================================================================
+
+DNS service:
+------------
+resolves name to ip address , route53 is dns service in aws
+    create hosted xone -> domain name(vprofile.in) -> type (private hosted) -> region(n.virgina) -> 
+in hosted zones we can create records:
+    get private ips (db, mc, rmq, app) -> create records -> record name(db01, mc01, rmq01, app01) -> value: pate private ip -> record type(A -> name to ip map;cname -> name to name mapping like LB url) -> create record
+to check resolvng correctly or not:
+    ssh to appo1 and run commands:
+        $ ping -c 4 db01.vprofile.in
+
+build and deploy artifacts:
+==============================
+
