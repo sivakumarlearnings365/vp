@@ -42,4 +42,80 @@ to check resolvng correctly or not:
 
 build and deploy artifacts:
 ==============================
+-> build artifcats from source code with maven  in local and push to s3 bucket from there to ec2 instance
+    auth process :
+    ------------
+    local --------------> s3 -------------------> ec2
+           iam keys auth      iam roles auth
+
+
+    create s3 bucken in n.virgina region, bucket names should be unique(vprofile-las-artifacts)
+    create iam user ,
+        iam -> users -> create  user (vprofile-s3-admin) ->  attcah policies directly -> amazon s3 full access -> create user and generate access keys,
+        security credentials -> create access keys -> cli and save keys.
+
+    create iam roles: -> roles can be applies to any aws services like ec2-instances
+        iam -> roles -> create role -> aws service -> usecase(ec2) -> permission(amazon s3 full access) ->role(s3-admin) -> create -> attch riole to ec2-instance(app01)
+
+    -> before building artifacts in application.properties make sure, host names should be correct (db01.vprofile.in, mc01.vprofile.in, rmq01.vprofile.in)
+    in vs code -> cntrl+shift+p, select default profile, bash   -> now on view -> terminal
+        $ mvn -version (should be 3.9.9, java 17.0.12)
+        $ aws
+    now under vprofile-project path build artifacts
+    $ mvn install -> generates target folder which has vprofile.war which is archive of vprofile folder
+    $ aws configure (configure all the details,  files will be store under ~/.aws/config & credentials)
+
+    Now copy artifact to s3 bucket:
+    $ aws s3 cp target/vprofile-v2.war s3://vproile-las-artifacts/
+    $ ws s3 ls s3://vproile-las-artifacts/
+
+    now login to app instance and install aws cli tool
+    $ sanp install aws-cli --classic
+    $ aws 
+    copy artifcat from s3 bucket to app instance
+    $ aws s3 cp s3://vproile-las-artifacts/vprofile-v2.war /tmp/
+    now stop tomcat service and remove default ROOT and copy artifcats
+    $ systemctl stop tomcat10
+    $  rm -rf /var/lib/tomcat10/webapps/ROOT
+    $ cp /tmp/vprofile-v2.war /var/lib/tomcat10/webapps/ROOT.war
+         after starting tomcat it will extract ROOT.war to ROOT
+    $ systemctl start tomcat10
+
+    Load balanving & DNS:
+    =========================
+
+    to test tomcat is responding or not, for tomcat instances add port 8080 from my ip and test in browser
+
+    target groups:
+    ---------------
+    lb -> target grps -> crt targt grp -> targt as instancs -> targt grp nme is vprofile-las-tg -> protocol http:8080 -> hlth chk, advance hlth chk , hlth chk port override 8080 -> nxt -> select app01(tomcat) -> 8080(icludea spending below) -> crt trgt grp 
+
+    load balancer:
+    ------------
+    lb -> load balancer ->  app lb -> name(vprofile-las-lb) -> select all VPC -> security grp select LB security grp -> listeners and routing : listener http:80 , forward to vprofile-las-tg, for https add one more listener and select https, under secutiry policy select acm  and selct cert -> craete lb
+
+    After creating lb , go to lb 
+        copy DNS name and add to domain record(godaddy) as canme name:vprofileapp , value:<lb dns anme>
+
+    do hcs of target grps , check port 8080 is allowed from lb sg or not
+
+Auto scaling Group:
+====================
+    scaling 3 reurs:
+    ----------
+    1) ami 
+    2) template to launch instance(sg, keypairs..)
+    3) asg itself where we lauych template  
+
+    ami:
+    ----
+    go to instance where asg wants to craete
+     selct -> actions -> img & templt  -> crt imag (vprofile-las-app-img) -> crat imag 
+     images -> ami's 
+    now create templates:
+    -----------------------
+    templat -> launch template -> name(vprofile-las-app-LT) -> My Amis(owned by me), selct ami -> t3/t2.micro -> sg group (app sg)  -> resrc tags(name:vprofile-app, project:vprofile)  -> advanced detauils -> iam instance prifile : s3-admin
+    asg:
+    ---
+    auto scaling -> asg -> craete -> (4:33)
 
