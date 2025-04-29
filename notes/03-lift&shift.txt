@@ -81,8 +81,8 @@ build and deploy artifacts:
          after starting tomcat it will extract ROOT.war to ROOT
     $ systemctl start tomcat10
 
-    Load balanving & DNS:
-    =========================
+Load balanving & DNS:
+=========================
 
     to test tomcat is responding or not, for tomcat instances add port 8080 from my ip and test in browser
 
@@ -110,12 +110,29 @@ Auto scaling Group:
     ami:
     ----
     go to instance where asg wants to craete
-     selct -> actions -> img & templt  -> crt imag (vprofile-las-app-img) -> crat imag 
+     selct(app01) -> actions -> img & templt  -> crt imag (vprofile-las-app-img) -> crat imag 
      images -> ami's 
     now create templates:
     -----------------------
-    templat -> launch template -> name(vprofile-las-app-LT) -> My Amis(owned by me), selct ami -> t3/t2.micro -> sg group (app sg)  -> resrc tags(name:vprofile-app, project:vprofile)  -> advanced detauils -> iam instance prifile : s3-admin
+    templat -> launch template -> name(vprofile-las-app-LT) -> My Amis(owned by me), selct ami -> t3/t2.micro -> sg group (app sg)  -> resrc tags(name:vprofile-app, project:vprofile) tag instances & names  -> advanced detauils -> iam instance prifile : s3-admin
     asg:
     ---
-    auto scaling -> asg -> craete -> (4:33)
+    auto scaling -> asg -> craete -> name(vprofile-las-app-asg) -> select created template -> select all availability zones -> attch to an existing LB -> choose LB from  target groups -> hc , select elastic Lb HC -> desired cpacity 1 -> min 1 & max 4 -> target tracking scaling policies -> avg cpu utilization ->uncheck enable saclin protection(if checks, this will not terminate instance if it is unhaelthy) --> add notification (select created sns topic) -> create asg 
+
+    target groups -> selct trgt grp -> attributes ->  edit -> turn on stickiness 
+
+    asg -> targets -> deregister vprofile-app01 , delete app01 instances 
+
+    validate by copying dn of LB or domain name in browser 
+
+    --> this infrastructurea as a service
+
+    terminatingmethod:
+    ====================
+    1) auto scaling groups 
+    2) terminate ec2 instances except app instances 
+    3)delete Lb , delete target groups & check volumes
+    4) remove all creted records in hosted zones, then hosted zones
+    5) snap shots created from ami,  forst deregister ami and then delete snapshots 
+    6) s3 bucket -> first empty s3 bucket and then delete it 
 
