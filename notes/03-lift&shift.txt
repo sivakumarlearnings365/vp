@@ -67,7 +67,7 @@ build and deploy artifacts:
 
     Now copy artifact to s3 bucket:
     $ aws s3 cp target/vprofile-v2.war s3://vproile-las-artifacts/
-    $ ws s3 ls s3://vproile-las-artifacts/
+    $ aws s3 ls s3://vproile-las-artifacts/
 
     now login to app instance and install aws cli tool
     $ sanp install aws-cli --classic
@@ -135,4 +135,22 @@ Auto scaling Group:
     4) remove all creted records in hosted zones, then hosted zones
     5) snap shots created from ami,  forst deregister ami and then delete snapshots 
     6) s3 bucket -> first empty s3 bucket and then delete it 
+
+
+
+
+==========================================
+++++++++++++++++++++++++++++++++++++++++
+================================================
+
+flow:
+=========
+
+create security groups -> create ec2-instances with security groups & user data -> crate records for services  in route53 as DNS service with created domain name 
+
+to build and deploy atrifacts from local:
+------------------------------------
+create s3 bucken where artifcats stores -> create i am user -> create role and attch to app01 instance -> build artifcats from local -> copy to s3 bucket -> now copy artifacts from s3 to app01 instance and restart service.
+
+
 
